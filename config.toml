@@ -46,15 +46,15 @@ paginate        = 6
 
 [[menu.main]]
   name = "Projects"
-  url = ""
+  url = "projects"
   weight = 100
 
 [[menu.main]]
   name = "Research"
-  url = ""
+  url = "/research"
   weight = 99
 
 [[menu.main]]
   name = "About me"
-  url = ""
+  url = "/about"
   weight = 95
