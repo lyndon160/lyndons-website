@@ -1,0 +1,60 @@
+baseurl         = "/"
+theme           = "casper-two"
+languageCode    = "en-US"
+disqusShortname = ""
+paginate        = 6
+#SectionPagesMenu = "main"
+
+[params]
+  title       = "Lyndon Fawcett"
+  subtitle    = "Push -> Build -> Deploy"
+
+  cover       = ""
+  description = "Welcome to Lyndon's website!"
+  metaDescription = ""
+  googleAnalytics = ""
+  customCSS = []
+  RSSLink = ""
+
+  twitterName = "lyndon160"
+  fbName = ""
+  githubName = "lyndon160"
+
+  logo = ""
+  orgName = ""
+  orgWebsite = "https://www.lyndonfawcett.com"
+  orgDescription = ""
+
+  author = "Lyndon"
+  authorAvatar = "/img/lyndon.jpeg"
+  authorLocation = "Lancaster, UK"
+  authorWebsite = "https://lyndon160.github.com"
+  authorDescription = ""
+
+  pageNotFoundTitle = "404 - Page not found"
+
+  #casper or caspertwo
+  singleViewStyle = "caspertwo"
+
+[permalinks]
+  post = "/:slug/"
+
+[[menu.main]]
+  name = "Home"
+  url = "/"
+  weight = 200
+
+[[menu.main]]
+  name = "Projects"
+  url = ""
+  weight = 100
+
+[[menu.main]]
+  name = "Research"
+  url = ""
+  weight = 99
+
+[[menu.main]]
+  name = "About me"
+  url = ""
+  weight = 95
