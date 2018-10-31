@@ -20,21 +20,21 @@ paginate        = 6
   fbName = ""
   githubName = "lyndon160"
 
-  logo = ""
-  orgName = ""
+  logo = "/img/lyndon.jpeg"
+  orgName = "Lyndon Fawcett"
   orgWebsite = "https://www.lyndonfawcett.com"
-  orgDescription = ""
+  orgDescription = "Lyndon Fawcett"
 
   author = "Lyndon"
   authorAvatar = "/img/lyndon.jpeg"
   authorLocation = "Lancaster, UK"
   authorWebsite = "https://lyndon160.github.com"
-  authorDescription = ""
+  authorDescription = "Lyndon Fawcett"
 
   pageNotFoundTitle = "404 - Page not found"
 
   #casper or caspertwo
-  singleViewStyle = "caspertwo"
+  singleViewStyle = "casper"
 
 [permalinks]
   post = "/:slug/"
