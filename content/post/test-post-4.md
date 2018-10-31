@@ -10,11 +10,14 @@ Initially, I ventured out to learn more about programming, and more specifical
 
 Here are a couple of images of the models that were used for advertising of the game:
 
-[caption id="attachment_158" align="aligncenter" width="300"]<img class="wp-image-158 size-medium" src="http://lyndonfawcett.com/wp-content/uploads/2016/08/Capture2-300x137.png" alt="Capture2" width="300" height="137" /> Blender render spaceship back[/caption]
+<img class="wp-image-158 size-medium" src="" alt="Capture2" width="300"/> 
 
+Blender render spaceship back
 <!--more-->
 
-[caption id="attachment_157" align="aligncenter" width="300"]<img class="wp-image-157 size-medium" src="http://lyndonfawcett.com/wp-content/uploads/2016/08/Capture-300x153.png" alt="Capture" width="300" height="153" /> Blender render spaceship front[/caption]
+<img class="wp-image-157 size-medium" src="" alt="Capture" width="300"/> 
+
+Blender render spaceship front
 
 Despite rendering these over 8 machines (though only using the CPU), the 20 second animation took 4 hours to render.
 
@@ -26,9 +29,9 @@ So why did I use this over Unity (a popular game engine)? Well, to summarise, I 
 <div class="mceTemp"></div>
 The following shows my final year project running on windows 8. It can be run on most operating systems, IOS, Android, Windows, and OSX.
 
-[caption id="" align="alignnone" width="1816"]<img class="" src="https://raw.githubusercontent.com/lyndon160/MiniArchitect/master/Arena.PNG" width="1816" height="839" /> MiniArchitect home design screenshot[/caption]
+<img class="" src="https://raw.githubusercontent.com/lyndon160/MiniArchitect/master/Arena.PNG" width="1816" /> MiniArchitect home design screenshot
 
-[caption id="" align="alignnone" width="1816"]<img class="" src="https://raw.githubusercontent.com/lyndon160/MiniArchitect/master/Arenahelp.PNG" width="1816" height="839" /> Gesture control help screen[/caption]
+<img class="" src="https://raw.githubusercontent.com/lyndon160/MiniArchitect/master/Arenahelp.PNG" width="1816"/> Gesture control help screen
 
 All code for the project along with more information is available at https://github.com/lyndon160/MiniArchitect and should still be supported by the latest version of LibGDX at the time of writing this.
 
