@@ -7,7 +7,7 @@ paginate        = 6
 
 [params]
   title       = "Lyndon Fawcett"
-  subtitle    = "Push -> Build -> Deploy"
+  subtitle    = "Push -> Build -> Test -> Deploy"
 
   cover       = ""
   description = "Welcome to Lyndon's website!"
@@ -16,7 +16,7 @@ paginate        = 6
   customCSS = []
   RSSLink = ""
 
-  twitterName = "lyndon160"
+  twitterName = "@LyndonFawcett"
   fbName = ""
   githubName = "lyndon160"
 
