@@ -18,10 +18,10 @@ disqusShortname = "yourdiscussshortname" # Enable or disable Disqus.
     info = "Researcher and Developer" # Author's job title or info.
     description = "Lyndon Fawcett's personal website" # Site description.
     keywords = "blog,developer,personal" # Site keywords.
-    avatarurl = "images/lyndon.jpeg" # Contain the path of the optionnal avatar in the static folder.
+    avatarurl = "/img/lyndon.jpeg" # Contain the path of the optionnal avatar in the static folder.
 
     footercontent = "Enter a text here." # Add footer content
-    fixedbarContent = "Contact me" # Add fixedbar content
+    fixedbarContent = "Contact me " # Add fixedbar content
     fixedbarContentAfter = "lyndonfawcett@hotmail.com" # Add fixedbar content after click
 
     # Whether you want to hide copyright and credits in the footer.
@@ -56,13 +56,8 @@ disqusShortname = "yourdiscussshortname" # Enable or disable Disqus.
 [[params.social]]
     name = "LinkedIn"
     weight = 3
-    url = "https://www.linkedin.com/in/lyndonfawcett/"
+    url = "https://www.linkedin.com/in/lyndon-fawcett-b8054197/"
 
-# Menu links
-[[menu.main]]
-    name = "Blog"
-    weight = 1
-    url  = "posts"
 [[menu.main]]
     name = "About"
     weight = 2
