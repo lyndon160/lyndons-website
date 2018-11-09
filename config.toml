@@ -20,7 +20,7 @@ disqusShortname = "yourdiscussshortname" # Enable or disable Disqus.
     keywords = "blog,developer,personal" # Site keywords.
     avatarurl = "/img/lyndon.jpeg" # Contain the path of the optionnal avatar in the static folder.
 
-    footercontent = "Nothing down here!." # Add footer content
+    footercontent = "Nothing to see here!" # Add footer content
     fixedbarContent = "To contact me direct: " # Add fixedbar content
     fixedbarContentAfter = "lyndonfawcett@hotmail.com" # Add fixedbar content after click
 
