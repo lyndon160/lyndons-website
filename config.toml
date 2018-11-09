@@ -1,4 +1,4 @@
-baseurl = "http://www.lyndonfawcett.com" # Hostname (and path) to the root.
+baseurl = "/" # Hostname (and path) to the root.
 title = "Lyndon Fawcett" # Site title.
 theme = "hugo-coder-portfolio" # Set the theme.
 languagecode = "en" # The site’s language code used to generate RSS.
