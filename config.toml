@@ -20,8 +20,8 @@ disqusShortname = "yourdiscussshortname" # Enable or disable Disqus.
     keywords = "blog,developer,personal" # Site keywords.
     avatarurl = "/img/lyndon.jpeg" # Contain the path of the optionnal avatar in the static folder.
 
-    footercontent = "Enter a text here." # Add footer content
-    fixedbarContent = "Contact me " # Add fixedbar content
+    footercontent = "Nothing down here!." # Add footer content
+    fixedbarContent = "To contact me direct: " # Add fixedbar content
     fixedbarContentAfter = "lyndonfawcett@hotmail.com" # Add fixedbar content after click
 
     # Whether you want to hide copyright and credits in the footer.
@@ -37,7 +37,7 @@ disqusShortname = "yourdiscussshortname" # Enable or disable Disqus.
     # RTL support
     rtl = false
 
-    snsShare = true # new add
+    snsShare = false # new add
 
     thumbnail = "images/tn.png" # default sns thumbnail
 
