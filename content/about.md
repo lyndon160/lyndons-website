@@ -10,4 +10,4 @@ Lyndon Fawcett is soon to complete his doctorate from Lancaster Universtiy, alon
 
 With regards to Lyndon's career aspirations, he's looking to find an organisation which gives him plenty of room to grow. Lyndon hope's to be working on high technology research level work that has direct impact within industry or working on cutting edge cloud development, implementing current best practices. He is also eager to take on a role where he will have responsibility over an area of work, and looks forward to taking on the responsibility of managing a team.
 
-In his spare time, he enjoys traveling, building things, game design, and cycling.
+In Lyndon's spare time he enjoys traveling, building things, game design, and cycling.
