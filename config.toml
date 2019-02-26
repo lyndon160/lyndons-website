@@ -18,7 +18,7 @@ disqusShortname = "Lyndon" # Enable or disable Disqus.
     info = "Researcher and Developer" # Author's job title or info.
     description = "Lyndon Fawcett's personal website" # Site description.
     keywords = "blog,developer,personal" # Site keywords.
-    avatarurl = "/img/lyndon.jpeg" # Contain the path of the optionnal avatar in the static folder.
+    avatarurl = "/img/lyndon-comic.png" # Contain the path of the optionnal avatar in the static folder.
 
     footercontent = "" # Add footer content
     fixedbarContent = "To contact me direct: " # Add fixedbar content
