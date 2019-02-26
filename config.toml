@@ -11,7 +11,7 @@ pygmentscodefences = true # Enable code fence background highlighting.
 pygmentscodefencesguesssyntax = true # Enable syntax guessing for code fences without specified language.
 pygmentsUseClasses = true # new add
 
-disqusShortname = "yourdiscussshortname" # Enable or disable Disqus.
+disqusShortname = "Lyndon" # Enable or disable Disqus.
 
 [params] # theme parameters
     author = "Lyndon Fawcett" # Author's name.
@@ -20,7 +20,7 @@ disqusShortname = "yourdiscussshortname" # Enable or disable Disqus.
     keywords = "blog,developer,personal" # Site keywords.
     avatarurl = "/img/lyndon.jpeg" # Contain the path of the optionnal avatar in the static folder.
 
-    footercontent = "Nothing to see here!" # Add footer content
+    footercontent = "" # Add footer content
     fixedbarContent = "To contact me direct: " # Add fixedbar content
     fixedbarContentAfter = "lyndonfawcett@hotmail.com" # Add fixedbar content after click
 

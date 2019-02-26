@@ -4,7 +4,7 @@ date: 2018-10-30T17:09:56Z
 draft: false
 ---
 
-Lyndon Fawcett is soon to complete his doctorate from Lancaster Universtiy, along side this he is working as a researcher/developer.
+Lyndon Fawcett is soon to complete his doctorate from Lancaster Universtiy, along side this he is working as a researcher and Cloud developer.
 
 <div style="text-align:center"><img height='150' src ="https://avatars2.githubusercontent.com/u/5150703?s=400&u=999e3081cdb0833bc3c256301136e65bd4d98849&v=4" /></div>
 
