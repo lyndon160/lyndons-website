@@ -22,7 +22,7 @@ disqusShortname = "Lyndon" # Enable or disable Disqus.
 
     footercontent = "" # Add footer content
     fixedbarContent = "To contact me direct: " # Add fixedbar content
-    fixedbarContentAfter = "lyndonfawcett@hotmail.com" # Add fixedbar content after click
+    fixedbarContentAfter = "Message me on LinkedIn!" # Add fixedbar content after click
 
     # Whether you want to hide copyright and credits in the footer.
     hideCredits = true
@@ -57,8 +57,3 @@ disqusShortname = "Lyndon" # Enable or disable Disqus.
     name = "LinkedIn"
     weight = 3
     url = "https://www.linkedin.com/in/lyndon-fawcett-b8054197/"
-
-[[menu.main]]
-    name = "About"
-    weight = 2
-    url = "about"
