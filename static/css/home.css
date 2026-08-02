@@ -1,11 +1,12 @@
 :root {
-  color-scheme: light;
-  --background: #f4f1eb;
-  --surface: #fffdf9;
-  --text: #171717;
-  --muted: #68645e;
-  --line: #ded9d0;
-  --accent: #0b3f49;
+  color-scheme: dark;
+  --background: #061710;
+  --surface: #0d291e;
+  --text: #f2f7f3;
+  --muted: #afc5b8;
+  --line: #315343;
+  --accent: #91d4a8;
+  --accent-strong: #b2e7c2;
 }
 
 * {
@@ -24,7 +25,9 @@ body {
   place-items: center;
   padding: 40px 20px;
   color: var(--text);
-  background: var(--background);
+  background:
+    radial-gradient(circle at 50% 0%, #123d2c 0, transparent 44%),
+    var(--background);
   font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -36,7 +39,7 @@ body {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 28px;
-  box-shadow: 0 24px 70px rgb(49 43 32 / 8%);
+  box-shadow: 0 28px 80px rgb(0 8 4 / 38%);
 }
 
 .portrait {
@@ -46,6 +49,7 @@ body {
   margin: 0 auto 30px;
   object-fit: cover;
   border-radius: 50%;
+  border: 3px solid var(--line);
 }
 
 .intro {
@@ -97,27 +101,27 @@ h1 {
 }
 
 .links a:hover {
-  color: var(--accent);
+  color: var(--accent-strong);
   border-color: var(--accent);
   transform: translateY(-2px);
 }
 
 .links a:focus-visible {
-  outline: 3px solid rgb(11 63 73 / 25%);
+  outline: 3px solid rgb(145 212 168 / 38%);
   outline-offset: 3px;
 }
 
 .links .arm-link {
   grid-column: 1 / -1;
-  color: #fff;
+  color: #082017;
   background: var(--accent);
   border-color: var(--accent);
 }
 
 .links .arm-link:hover {
-  color: #fff;
-  border-color: #072f37;
-  background: #072f37;
+  color: #061710;
+  border-color: var(--accent-strong);
+  background: var(--accent-strong);
 }
 
 @media (max-width: 430px) {

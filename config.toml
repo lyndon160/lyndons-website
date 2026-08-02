@@ -1,5 +1,5 @@
 baseurl = "/" # Hostname (and path) to the root.
-title = "Lyndon Fawcett" # Site title.
+title = "Dr Lyndon Fawcett" # Site title.
 theme = "hugo-coder-portfolio" # Set the theme.
 languagecode = "en" # The site’s language code used to generate RSS.
 defaultcontentlanguage = "en" # The default content language.
@@ -14,9 +14,9 @@ pygmentsUseClasses = true # new add
 disqusShortname = "Lyndon" # Enable or disable Disqus.
 
 [params] # theme parameters
-    author = "Lyndon Fawcett" # Author's name.
+    author = "Dr Lyndon Fawcett" # Author's name.
     info = "Head of Product Security at Arm" # Author's job title or info.
-    description = "Lyndon Fawcett's personal website" # Site description.
+    description = "Dr Lyndon Fawcett's personal website" # Site description.
     keywords = "blog,developer,personal" # Site keywords.
     avatarurl = "/img/lyndon.png" # Portrait used across the site.
 
