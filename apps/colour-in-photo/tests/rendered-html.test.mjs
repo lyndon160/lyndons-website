@@ -26,6 +26,8 @@ test("exports the finished photo-to-puzzle experience as static HTML", async () 
   assert.match(html, /Turn a favourite photo into a canvas you can colour\./i);
   assert.match(html, /Processed on this device\./i);
   assert.match(html, /Your photo isn’t uploaded\./i);
+  assert.match(html, /large photos resized automatically/i);
+  assert.doesNotMatch(html, /up to 20 MB/i);
   assert.match(html, /Private by design/i);
   assert.match(html, /https:\/\/colour\.lyndonfawcett\.com\/og\.png/i);
   assert.match(html, /manifest\.webmanifest/i);

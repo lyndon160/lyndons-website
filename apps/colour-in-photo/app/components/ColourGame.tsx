@@ -24,7 +24,6 @@ import {
 } from "@/app/lib/game-state";
 import styles from "./ColourGame.module.css";
 
-const MAX_FILE_SIZE = 20 * 1024 * 1024;
 const MAX_PIXELS = 1_000_000;
 const MAX_EDGE = 1_400;
 const MIN_EDGE = 80;
@@ -164,11 +163,38 @@ function fileExtension(name: string) {
   return name.toLowerCase().split(".").pop() ?? "";
 }
 
-function isSupportedFile(file: File) {
+function isSupportedFile(file: Pick<File, "name" | "type">) {
   if (ACCEPTED_TYPES.has(file.type.toLowerCase())) return true;
   return ["jpg", "jpeg", "png", "webp", "heic", "heif"].includes(
     fileExtension(file.name),
   );
+}
+
+export function validatePhotoFile(
+  file: Pick<File, "name" | "size" | "type">,
+): string | undefined {
+  if (!isSupportedFile(file)) {
+    return "Choose a JPEG, PNG, WebP, or HEIC photo.";
+  }
+  return undefined;
+}
+
+export function calculateWorkingDimensions(
+  sourceWidth: number,
+  sourceHeight: number,
+) {
+  const edgeScale = Math.min(1, MAX_EDGE / Math.max(sourceWidth, sourceHeight));
+  const pixelScale = Math.min(
+    1,
+    Math.sqrt(MAX_PIXELS / (sourceWidth * sourceHeight)),
+  );
+  const scale = Math.min(edgeScale, pixelScale);
+
+  return {
+    width: Math.max(1, Math.floor(sourceWidth * scale)),
+    height: Math.max(1, Math.floor(sourceHeight * scale)),
+    resized: scale < 1,
+  };
 }
 
 function friendlyDecodeError(file: File) {
@@ -243,12 +269,8 @@ function inspectPhoto(imageData: ImageData, width: number, height: number) {
 }
 
 async function decodePhoto(file: File) {
-  if (file.size > MAX_FILE_SIZE) {
-    throw new Error("That photo is larger than 20 MB. Choose a smaller copy and try again.");
-  }
-  if (!isSupportedFile(file)) {
-    throw new Error("Choose a JPEG, PNG, WebP, or HEIC photo.");
-  }
+  const validationError = validatePhotoFile(file);
+  if (validationError) throw new Error(validationError);
 
   let source: CanvasImageSource;
   let sourceWidth = 0;
@@ -293,11 +315,10 @@ async function decodePhoto(file: File) {
     );
   }
 
-  const edgeScale = Math.min(1, MAX_EDGE / Math.max(sourceWidth, sourceHeight));
-  const pixelScale = Math.min(1, Math.sqrt(MAX_PIXELS / (sourceWidth * sourceHeight)));
-  const scale = Math.min(edgeScale, pixelScale);
-  const width = Math.max(1, Math.round(sourceWidth * scale));
-  const height = Math.max(1, Math.round(sourceHeight * scale));
+  const { width, height, resized } = calculateWorkingDimensions(
+    sourceWidth,
+    sourceHeight,
+  );
   const canvas = createCanvas(width, height);
   const context = canvas.getContext("2d", { willReadFrequently: true });
 
@@ -316,7 +337,12 @@ async function decodePhoto(file: File) {
   if (imageUrl) URL.revokeObjectURL(imageUrl);
 
   const imageData = context.getImageData(0, 0, width, height);
-  const warning = inspectPhoto(imageData, width, height);
+  const resizeNotice = resized
+    ? `Large photo resized to ${width.toLocaleString()} × ${height.toLocaleString()} for smooth colouring.`
+    : undefined;
+  const photoNotice = inspectPhoto(imageData, width, height);
+  const warning =
+    [resizeNotice, photoNotice].filter(Boolean).join(" ") || undefined;
   const previewBlob = await canvasToBlob(canvas, "image/jpeg", 0.92);
 
   return {
@@ -1609,7 +1635,9 @@ export function ColourGame() {
               <button className={styles.primaryButton} type="button" onClick={startNewPhoto}>
                 Select photo
               </button>
-              <small>JPEG, PNG, WebP or HEIC · up to 20 MB</small>
+              <small>
+                JPEG, PNG, WebP or HEIC · large photos resized automatically
+              </small>
               {error && (
                 <div className={styles.inlineError} role="alert">
                   {error}
