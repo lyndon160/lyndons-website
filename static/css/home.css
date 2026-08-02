@@ -56,31 +56,23 @@ body {
   margin-bottom: 30px;
 }
 
-.eyebrow {
-  margin: 0 0 6px;
-  color: var(--muted);
-  font-size: 0.83rem;
-  font-weight: 650;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
 h1 {
   margin: 0;
-  font-size: clamp(2.2rem, 9vw, 3.8rem);
+  font-size: clamp(2.2rem, 9vw, 3.25rem);
   font-weight: 720;
   letter-spacing: -0.055em;
-  line-height: 1;
+  line-height: 0.98;
 }
 
 .honorific {
   display: block;
-  margin-bottom: 10px;
-  color: #7f9f8d;
-  font-size: 0.38em;
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-size: 0.34em;
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   line-height: 1;
+  opacity: 0.72;
 }
 
 .role {
