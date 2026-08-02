@@ -28,7 +28,10 @@
 
       <div class="intro">
         <p class="eyebrow">Hello, I’m</p>
-        <h1>{{ .Site.Params.author }}</h1>
+        <h1 aria-label="{{ .Site.Params.author }}">
+          <span class="honorific" aria-hidden="true">{{ .Site.Params.honorific }}</span>
+          <span aria-hidden="true">{{ .Site.Params.displayname }}</span>
+        </h1>
         <p class="role">{{ .Site.Params.info }}</p>
       </div>
 

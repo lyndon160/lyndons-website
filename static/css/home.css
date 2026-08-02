@@ -73,6 +73,16 @@ h1 {
   line-height: 1;
 }
 
+.honorific {
+  display: block;
+  margin-bottom: 10px;
+  color: #7f9f8d;
+  font-size: 0.38em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
 .role {
   margin: 14px 0 0;
   color: var(--muted);
