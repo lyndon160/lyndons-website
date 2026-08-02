@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  calculateWorkingDimensions,
   canAttemptPuzzleRegion,
   copySourcePixels,
   regionsAlongPuzzleSegment,
+  validatePhotoFile,
 } from "../app/components/ColourGame";
 import type { PuzzleDataV1 } from "../app/lib/puzzle-types";
 
@@ -28,6 +30,56 @@ function makePuzzle(regionMap = new Uint16Array([0, 0, 1, 2, 2])): PuzzleDataV1 
 }
 
 describe("shipped ColourGame helpers", () => {
+  it("accepts supported photos regardless of their compressed file size", () => {
+    expect(
+      validatePhotoFile({
+        name: "large-photo.jpg",
+        size: 85 * 1024 * 1024,
+        type: "image/jpeg",
+      }),
+    ).toBeUndefined();
+  });
+
+  it("still rejects unsupported file formats", () => {
+    expect(
+      validatePhotoFile({
+        name: "large-photo.tiff",
+        size: 85 * 1024 * 1024,
+        type: "image/tiff",
+      }),
+    ).toMatch(/JPEG, PNG, WebP, or HEIC/);
+  });
+
+  it.each([
+    [6_000, 4_000],
+    [4_000, 6_000],
+    [4_032, 3_024],
+    [3_024, 4_032],
+    [8_000, 1_000],
+    [1_002, 999],
+  ])(
+    "scales %i × %i photos within both working-resolution caps",
+    (sourceWidth, sourceHeight) => {
+      const result = calculateWorkingDimensions(sourceWidth, sourceHeight);
+
+      expect(result.resized).toBe(true);
+      expect(Math.max(result.width, result.height)).toBeLessThanOrEqual(1_400);
+      expect(result.width * result.height).toBeLessThanOrEqual(1_000_000);
+      expect(result.width / result.height).toBeCloseTo(
+        sourceWidth / sourceHeight,
+        2,
+      );
+    },
+  );
+
+  it("leaves photos already within the working resolution unchanged", () => {
+    expect(calculateWorkingDimensions(1_200, 800)).toEqual({
+      width: 1_200,
+      height: 800,
+      resized: false,
+    });
+  });
+
   it("copies retained source pixels before a worker transfer", () => {
     const source = new Uint8ClampedArray([4, 8, 15, 16, 23, 42]);
     const workerCopy = copySourcePixels(source);
