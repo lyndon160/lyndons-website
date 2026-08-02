@@ -18,7 +18,7 @@ disqusShortname = "Lyndon" # Enable or disable Disqus.
     info = "Security Architect" # Author's job title or info.
     description = "Lyndon Fawcett's personal website" # Site description.
     keywords = "blog,developer,personal" # Site keywords.
-    avatarurl = "/img/lyndon-comic-grey.png" # Contain the path of the optionnal avatar in the static folder.
+    avatarurl = "/img/lyndon.png" # Portrait used across the site.
 
     footercontent = "" # Add footer content
     fixedbarContent = "To contact me direct: " # Add fixedbar content
@@ -39,7 +39,7 @@ disqusShortname = "Lyndon" # Enable or disable Disqus.
 
     snsShare = false # new add
 
-    thumbnail = "images/tn.png" # default sns thumbnail
+    thumbnail = "img/lyndon.png" # default sns thumbnail
 
     # Multilanguage mode
     langseparator = "|" # Separates menus from language selectors when site is multilingual.

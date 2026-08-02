@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="{{ .Site.LanguageCode }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="{{ .Site.Params.description }}">
+    <meta name="author" content="{{ .Site.Params.author }}">
+    <meta property="og:title" content="{{ .Site.Title }}">
+    <meta property="og:description" content="{{ .Site.Params.description }}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ .Permalink }}">
+    <meta property="og:image" content="{{ "img/lyndon.png" | absURL }}">
+    <meta name="twitter:card" content="summary">
+    <title>{{ .Site.Title }}</title>
+    <link rel="canonical" href="{{ .Permalink }}">
+    <link rel="icon" type="image/png" href="{{ "images/favicon-32x32.png" | absURL }}" sizes="32x32">
+    <link rel="stylesheet" href="{{ "css/home.css" | absURL }}">
+  </head>
+  <body>
+    <main class="profile">
+      <img
+        class="portrait"
+        src="{{ "img/lyndon.png" | absURL }}"
+        alt="Portrait of Lyndon Fawcett"
+        width="512"
+        height="512"
+      >
+
+      <div class="intro">
+        <p class="eyebrow">Hello, I’m</p>
+        <h1>{{ .Site.Params.author }}</h1>
+        <p class="role">{{ .Site.Params.info }}</p>
+      </div>
+
+      <nav class="links" aria-label="Links">
+        {{ range sort .Site.Params.social "weight" }}
+          <a href="{{ .url }}" rel="me noreferrer">{{ .name }}</a>
+        {{ end }}
+        <a class="arm-link" href="https://www.arm.com/products/product-security">Arm Product Security</a>
+      </nav>
+    </main>
+  </body>
+</html>
