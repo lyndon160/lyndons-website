@@ -15,7 +15,7 @@ disqusShortname = "Lyndon" # Enable or disable Disqus.
 
 [params] # theme parameters
     author = "Lyndon Fawcett" # Author's name.
-    info = "Security Architect" # Author's job title or info.
+    info = "Head of Product Security at Arm" # Author's job title or info.
     description = "Lyndon Fawcett's personal website" # Site description.
     keywords = "blog,developer,personal" # Site keywords.
     avatarurl = "/img/lyndon.png" # Portrait used across the site.
