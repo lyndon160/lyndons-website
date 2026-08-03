@@ -4,6 +4,7 @@ import {
   calculateWorkingDimensions,
   canAttemptPuzzleRegion,
   copySourcePixels,
+  findHintTarget,
   regionsAlongPuzzleSegment,
   validatePhotoFile,
 } from "../app/components/ColourGame";
@@ -78,6 +79,43 @@ describe("shipped ColourGame helpers", () => {
       height: 800,
       resized: false,
     });
+  });
+
+  it("targets the largest unfinished section of the selected colour on request", () => {
+    const puzzle = {
+      ...makePuzzle(),
+      regionPalette: new Uint16Array([0, 0, 1]),
+      regionAreas: new Uint32Array([2, 8, 4]),
+    };
+    const filled = new Uint8Array([0, 0, 0]);
+
+    expect(findHintTarget(puzzle, filled, 0)).toEqual({
+      regionId: 1,
+      paletteIndex: 0,
+    });
+
+    filled[1] = 1;
+    expect(findHintTarget(puzzle, filled, 0)).toEqual({
+      regionId: 0,
+      paletteIndex: 0,
+    });
+  });
+
+  it("moves an explicit hint to the next unfinished colour", () => {
+    const puzzle = {
+      ...makePuzzle(),
+      regionPalette: new Uint16Array([0, 0, 1]),
+      regionAreas: new Uint32Array([2, 8, 4]),
+    };
+    const filled = new Uint8Array([1, 1, 0]);
+
+    expect(findHintTarget(puzzle, filled, 0)).toEqual({
+      regionId: 2,
+      paletteIndex: 1,
+    });
+
+    filled[2] = 1;
+    expect(findHintTarget(puzzle, filled, 0)).toBeNull();
   });
 
   it("copies retained source pixels before a worker transfer", () => {
