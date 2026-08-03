@@ -6,6 +6,7 @@ import {
   copySourcePixels,
   findHintTarget,
   regionsAlongPuzzleSegment,
+  resolveVisibleHintTarget,
   validatePhotoFile,
 } from "../app/components/ColourGame";
 import type { PuzzleDataV1 } from "../app/lib/puzzle-types";
@@ -116,6 +117,50 @@ describe("shipped ColourGame helpers", () => {
 
     filled[2] = 1;
     expect(findHintTarget(puzzle, filled, 0)).toBeNull();
+  });
+
+  it("keeps automatic hints off until the toggle is enabled", () => {
+    const puzzle = makePuzzle();
+    const filled = new Uint8Array(puzzle.regionCount);
+
+    expect(
+      resolveVisibleHintTarget(puzzle, filled, 0, null, false),
+    ).toBeNull();
+    expect(
+      resolveVisibleHintTarget(puzzle, filled, 0, null, true),
+    ).toEqual({ regionId: 0, paletteIndex: 0 });
+  });
+
+  it("keeps a requested hint visible when automatic hints are off", () => {
+    const puzzle = makePuzzle();
+    const filled = new Uint8Array(puzzle.regionCount);
+
+    expect(
+      resolveVisibleHintTarget(puzzle, filled, 0, 2, false),
+    ).toEqual({ regionId: 2, paletteIndex: 2 });
+  });
+
+  it("retargets automatic hints after a section is filled", () => {
+    const puzzle = {
+      ...makePuzzle(),
+      regionPalette: new Uint16Array([0, 0, 1]),
+      regionAreas: new Uint32Array([2, 8, 4]),
+    };
+    const filled = new Uint8Array(puzzle.regionCount);
+
+    expect(
+      resolveVisibleHintTarget(puzzle, filled, 0, null, true),
+    ).toEqual({ regionId: 1, paletteIndex: 0 });
+
+    filled[1] = 1;
+    expect(
+      resolveVisibleHintTarget(puzzle, filled, 0, null, true),
+    ).toEqual({ regionId: 0, paletteIndex: 0 });
+
+    filled[0] = 1;
+    expect(
+      resolveVisibleHintTarget(puzzle, filled, 0, null, true),
+    ).toEqual({ regionId: 2, paletteIndex: 1 });
   });
 
   it("copies retained source pixels before a worker transfer", () => {

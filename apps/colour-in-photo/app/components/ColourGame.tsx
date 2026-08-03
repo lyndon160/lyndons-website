@@ -173,6 +173,31 @@ export function findHintTarget(
     : null;
 }
 
+export function resolveVisibleHintTarget(
+  puzzle: PuzzleDataV1,
+  filled: ArrayLike<number>,
+  selectedPalette: number,
+  manualHintRegion: number | null,
+  autoHintEnabled: boolean,
+): { regionId: number; paletteIndex: number } | null {
+  if (
+    manualHintRegion !== null &&
+    Number.isInteger(manualHintRegion) &&
+    manualHintRegion >= 0 &&
+    manualHintRegion < puzzle.regionCount &&
+    !filled[manualHintRegion]
+  ) {
+    return {
+      regionId: manualHintRegion,
+      paletteIndex: puzzle.regionPalette[manualHintRegion] ?? selectedPalette,
+    };
+  }
+
+  return autoHintEnabled
+    ? findHintTarget(puzzle, filled, selectedPalette)
+    : null;
+}
+
 function createCanvas(width: number, height: number) {
   const canvas = document.createElement("canvas");
   canvas.width = width;
@@ -694,6 +719,7 @@ export function ColourGame() {
   );
   const [wrongRegion, setWrongRegion] = useState<number | null>(null);
   const [hintRegion, setHintRegion] = useState<number | null>(null);
+  const [autoHintEnabled, setAutoHintEnabled] = useState(false);
   const [pulseVersion, setPulseVersion] = useState(0);
   const [announcement, setAnnouncement] = useState("");
   const [comparing, setComparing] = useState(false);
@@ -727,6 +753,17 @@ export function ColourGame() {
     }
     return remaining;
   }, [filledRegions, puzzle]);
+
+  const visibleHintTarget = useMemo(() => {
+    if (!puzzle || complete) return null;
+    return resolveVisibleHintTarget(
+      puzzle,
+      filledRegions,
+      selectedPalette,
+      hintRegion,
+      autoHintEnabled,
+    );
+  }, [autoHintEnabled, complete, filledRegions, hintRegion, puzzle, selectedPalette]);
 
   const clearHint = useCallback(() => {
     if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
@@ -967,11 +1004,12 @@ export function ColourGame() {
       context.fillText(String(paletteIndex + 1), x, y);
     }
 
-    if (!complete && hintRegion !== null && hintRegion < puzzle.regionCount) {
-      const anchorOffset = hintRegion * 2;
+    if (!complete && visibleHintTarget) {
+      const visibleHintRegion = visibleHintTarget.regionId;
+      const anchorOffset = visibleHintRegion * 2;
       const x = puzzle.labelAnchors[anchorOffset];
       const y = puzzle.labelAnchors[anchorOffset + 1];
-      const paletteIndex = puzzle.regionPalette[hintRegion] ?? 0;
+      const paletteIndex = visibleHintTarget.paletteIndex;
       const colour = paletteColour(puzzle, paletteIndex);
       const radius = 22 / Math.max(transform.scale, 0.01);
       context.beginPath();
@@ -1013,11 +1051,11 @@ export function ColourGame() {
     canvasSize,
     complete,
     filledRegions,
-    hintRegion,
     keyboardRegion,
     puzzle,
     pulseVersion,
     view,
+    visibleHintTarget,
     wrongRegion,
   ]);
 
@@ -1403,6 +1441,17 @@ export function ColourGame() {
     setSelectedPalette(paletteIndex);
     setAnnouncement(
       `Colour ${paletteIndex + 1} selected. ${remainingByPalette[paletteIndex]} sections remaining.`,
+    );
+  };
+
+  const toggleAutoHint = () => {
+    const nextEnabled = !autoHintEnabled;
+    setAutoHintEnabled(nextEnabled);
+    if (!nextEnabled) clearHint();
+    setAnnouncement(
+      nextEnabled
+        ? "Automatic hints on. The next matching section will stay highlighted."
+        : "Automatic hints off. Press Hint when you want help.",
     );
   };
 
@@ -1826,6 +1875,16 @@ export function ColourGame() {
                   </button>
                   <button type="button" onClick={showHint} disabled={complete}>
                     <span aria-hidden="true">✦</span> Hint
+                  </button>
+                  <button
+                    type="button"
+                    className={autoHintEnabled ? styles.toolActive : ""}
+                    onClick={toggleAutoHint}
+                    aria-pressed={autoHintEnabled}
+                    aria-label={`Automatic hints ${autoHintEnabled ? "on" : "off"}`}
+                    disabled={complete}
+                  >
+                    <span aria-hidden="true">◎</span> Auto-hint
                   </button>
                   <button
                     ref={comparisonToggleRef}
