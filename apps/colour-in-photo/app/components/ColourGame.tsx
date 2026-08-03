@@ -58,6 +58,27 @@ interface DecodedPhoto {
   warning?: string;
 }
 
+interface LoadedImageElement {
+  image: HTMLImageElement;
+  url: string;
+}
+
+export interface PhotoSourceDecoders {
+  createBitmap?: (
+    file: Blob,
+    options?: ImageBitmapOptions,
+  ) => Promise<ImageBitmap>;
+  loadImage: (file: Blob) => Promise<LoadedImageElement>;
+  revokeObjectUrl: (url: string) => void;
+}
+
+export interface DecodedPhotoSource {
+  source: CanvasImageSource;
+  width: number;
+  height: number;
+  release: () => void;
+}
+
 interface ViewState {
   zoom: number;
   panX: number;
@@ -199,7 +220,13 @@ export function calculateWorkingDimensions(
 
 function friendlyDecodeError(file: File) {
   const extension = fileExtension(file.name);
-  if (extension === "heic" || extension === "heif") {
+  const type = file.type.toLowerCase();
+  if (
+    extension === "heic" ||
+    extension === "heif" ||
+    type === "image/heic" ||
+    type === "image/heif"
+  ) {
     return "This browser can’t open that HEIC photo. Try it in Safari 17 or later, or export the photo as JPEG, PNG, or WebP.";
   }
   return "That photo couldn’t be opened. Try a JPEG, PNG, or WebP version instead.";
@@ -209,21 +236,91 @@ async function loadImageElement(file: Blob) {
   const url = URL.createObjectURL(file);
   const image = new Image();
   image.decoding = "async";
-  image.src = url;
   try {
-    if (typeof image.decode === "function") {
-      await image.decode();
-    } else {
-      await new Promise<void>((resolve, reject) => {
-        image.onload = () => resolve();
-        image.onerror = () => reject(new Error("Image decode failed"));
-      });
-    }
+    await new Promise<void>((resolve, reject) => {
+      const cleanup = () => {
+        image.onload = null;
+        image.onerror = null;
+      };
+      image.onload = () => {
+        cleanup();
+        resolve();
+      };
+      image.onerror = () => {
+        cleanup();
+        reject(new Error("Image decode failed"));
+      };
+      image.src = url;
+    });
     return { image, url };
   } catch (error) {
     URL.revokeObjectURL(url);
     throw error;
   }
+}
+
+export async function decodePhotoSource(
+  file: Blob,
+  decoders: PhotoSourceDecoders,
+): Promise<DecodedPhotoSource> {
+  const bitmapAttempt = (options?: ImageBitmapOptions) => async () => {
+    const bitmap = await decoders.createBitmap!(file, options);
+    if (!bitmap.width || !bitmap.height) {
+      bitmap.close();
+      throw new Error("Decoded bitmap has no dimensions");
+    }
+    let released = false;
+    return {
+      source: bitmap,
+      width: bitmap.width,
+      height: bitmap.height,
+      release: () => {
+        if (released) return;
+        released = true;
+        bitmap.close();
+      },
+    };
+  };
+
+  if (decoders.createBitmap) {
+    try {
+      return await bitmapAttempt({ imageOrientation: "from-image" })();
+    } catch (error) {
+      const unsupportedOptions =
+        error instanceof TypeError ||
+        (error instanceof DOMException && error.name === "NotSupportedError");
+      if (unsupportedOptions) {
+        try {
+          return await bitmapAttempt()();
+        } catch {
+          // The image element below is more compatible with WebKit photo codecs.
+        }
+      }
+    }
+  }
+
+  const imageAttempt = async () => {
+    const loaded = await decoders.loadImage(file);
+    const width = loaded.image.naturalWidth;
+    const height = loaded.image.naturalHeight;
+    if (!width || !height) {
+      decoders.revokeObjectUrl(loaded.url);
+      throw new Error("Decoded image has no dimensions");
+    }
+    let released = false;
+    return {
+      source: loaded.image,
+      width,
+      height,
+      release: () => {
+        if (released) return;
+        released = true;
+        decoders.revokeObjectUrl(loaded.url);
+      },
+    };
+  };
+
+  return imageAttempt();
 }
 
 function inspectPhoto(imageData: ImageData, width: number, height: number) {
@@ -272,90 +369,73 @@ async function decodePhoto(file: File) {
   const validationError = validatePhotoFile(file);
   if (validationError) throw new Error(validationError);
 
-  let source: CanvasImageSource;
-  let sourceWidth = 0;
-  let sourceHeight = 0;
-  let bitmap: ImageBitmap | null = null;
-  let imageUrl: string | null = null;
+  let decodedSource: DecodedPhotoSource;
 
   try {
-    if (typeof createImageBitmap === "function") {
-      try {
-        bitmap = await createImageBitmap(file, {
-          imageOrientation: "from-image",
-        });
-      } catch {
-        bitmap = await createImageBitmap(file);
-      }
-      source = bitmap;
-      sourceWidth = bitmap.width;
-      sourceHeight = bitmap.height;
-    } else {
-      const loaded = await loadImageElement(file);
-      source = loaded.image;
-      imageUrl = loaded.url;
-      sourceWidth = loaded.image.naturalWidth;
-      sourceHeight = loaded.image.naturalHeight;
-    }
+    decodedSource = await decodePhotoSource(file, {
+      createBitmap:
+        typeof createImageBitmap === "function"
+          ? (blob, options) =>
+              options
+                ? createImageBitmap(blob, options)
+                : createImageBitmap(blob)
+          : undefined,
+      loadImage: loadImageElement,
+      revokeObjectUrl: (url) => URL.revokeObjectURL(url),
+    });
   } catch {
     throw new Error(friendlyDecodeError(file));
   }
 
-  if (!sourceWidth || !sourceHeight) {
-    bitmap?.close();
-    if (imageUrl) URL.revokeObjectURL(imageUrl);
-    throw new Error(friendlyDecodeError(file));
-  }
+  const { source, width: sourceWidth, height: sourceHeight } = decodedSource;
+  try {
+    if (Math.min(sourceWidth, sourceHeight) < MIN_EDGE) {
+      throw new Error(
+        "That photo is too small to make clear sections. Choose one at least 80 pixels on each side.",
+      );
+    }
 
-  if (Math.min(sourceWidth, sourceHeight) < MIN_EDGE) {
-    bitmap?.close();
-    if (imageUrl) URL.revokeObjectURL(imageUrl);
-    throw new Error(
-      "That photo is too small to make clear sections. Choose one at least 80 pixels on each side.",
+    const { width, height, resized } = calculateWorkingDimensions(
+      sourceWidth,
+      sourceHeight,
     );
+    const canvas = createCanvas(width, height);
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+
+    if (!context) {
+      throw new Error("Your browser couldn’t prepare a canvas for this photo.");
+    }
+
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, width, height);
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
+    context.drawImage(source, 0, 0, width, height);
+    decodedSource.release();
+
+    const imageData = context.getImageData(0, 0, width, height);
+    const resizeNotice = resized
+      ? `Large photo resized to ${width.toLocaleString()} × ${height.toLocaleString()} for smooth colouring.`
+      : undefined;
+    const photoNotice = inspectPhoto(imageData, width, height);
+    const warning =
+      [resizeNotice, photoNotice].filter(Boolean).join(" ") || undefined;
+    const previewBlob = await canvasToBlob(canvas, "image/jpeg", 0.92);
+
+    return {
+      photo: {
+        url: URL.createObjectURL(previewBlob),
+        width,
+        height,
+        name: file.name,
+        sourceRgba: imageData.data,
+        warning,
+      } satisfies DecodedPhoto,
+      rgba: imageData.data,
+    };
+  } finally {
+    decodedSource.release();
   }
-
-  const { width, height, resized } = calculateWorkingDimensions(
-    sourceWidth,
-    sourceHeight,
-  );
-  const canvas = createCanvas(width, height);
-  const context = canvas.getContext("2d", { willReadFrequently: true });
-
-  if (!context) {
-    bitmap?.close();
-    if (imageUrl) URL.revokeObjectURL(imageUrl);
-    throw new Error("Your browser couldn’t prepare a canvas for this photo.");
-  }
-
-  context.fillStyle = "#ffffff";
-  context.fillRect(0, 0, width, height);
-  context.imageSmoothingEnabled = true;
-  context.imageSmoothingQuality = "high";
-  context.drawImage(source, 0, 0, width, height);
-  bitmap?.close();
-  if (imageUrl) URL.revokeObjectURL(imageUrl);
-
-  const imageData = context.getImageData(0, 0, width, height);
-  const resizeNotice = resized
-    ? `Large photo resized to ${width.toLocaleString()} × ${height.toLocaleString()} for smooth colouring.`
-    : undefined;
-  const photoNotice = inspectPhoto(imageData, width, height);
-  const warning =
-    [resizeNotice, photoNotice].filter(Boolean).join(" ") || undefined;
-  const previewBlob = await canvasToBlob(canvas, "image/jpeg", 0.92);
-
-  return {
-    photo: {
-      url: URL.createObjectURL(previewBlob),
-      width,
-      height,
-      name: file.name,
-      sourceRgba: imageData.data,
-      warning,
-    } satisfies DecodedPhoto,
-    rgba: imageData.data,
-  };
 }
 
 function paletteColour(puzzle: PuzzleDataV1, paletteIndex: number) {
@@ -1540,9 +1620,15 @@ export function ColourGame() {
   };
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (file) void processFile(file);
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+    if (!file) {
+      input.value = "";
+      return;
+    }
+    void processFile(file).finally(() => {
+      if (input.files?.[0] === file) input.value = "";
+    });
   };
 
   const handleDrop = (event: DragEvent<HTMLDivElement>) => {
