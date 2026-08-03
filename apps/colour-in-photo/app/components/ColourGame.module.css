@@ -684,6 +684,13 @@
   background: rgba(255, 253, 248, 0.72);
 }
 
+.toolRow button.toolActive,
+.toolRow button.toolActive:hover:not(:disabled) {
+  color: #456450;
+  background: rgba(218, 233, 220, 0.78);
+  box-shadow: inset 0 0 0 1px rgba(69, 100, 80, 0.14);
+}
+
 .toolRow button:disabled,
 .presetControl button:disabled {
   opacity: 0.38;
@@ -1347,6 +1354,7 @@
 
   .toolRow button {
     padding-inline: 8px;
+    justify-content: center;
     font-size: 10px;
   }
 

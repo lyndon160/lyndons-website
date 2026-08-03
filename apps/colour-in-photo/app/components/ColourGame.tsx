@@ -139,6 +139,65 @@ export function canAttemptPuzzleRegion(
   );
 }
 
+export function findHintTarget(
+  puzzle: PuzzleDataV1,
+  filled: ArrayLike<number>,
+  selectedPalette: number,
+): { regionId: number; paletteIndex: number } | null {
+  const largestUnfilledRegion = (paletteIndex: number) => {
+    let regionId = -1;
+    let largestArea = -1;
+    for (let region = 0; region < puzzle.regionCount; region += 1) {
+      if (
+        !filled[region] &&
+        puzzle.regionPalette[region] === paletteIndex &&
+        (puzzle.regionAreas[region] ?? 0) > largestArea
+      ) {
+        regionId = region;
+        largestArea = puzzle.regionAreas[region] ?? 0;
+      }
+    }
+    return regionId;
+  };
+
+  const selectedRegion = largestUnfilledRegion(selectedPalette);
+  if (selectedRegion >= 0) {
+    return { regionId: selectedRegion, paletteIndex: selectedPalette };
+  }
+
+  const nextPalette = selectNextPalette(puzzle, filled, selectedPalette);
+  if (nextPalette === null) return null;
+  const nextRegion = largestUnfilledRegion(nextPalette);
+  return nextRegion >= 0
+    ? { regionId: nextRegion, paletteIndex: nextPalette }
+    : null;
+}
+
+export function resolveVisibleHintTarget(
+  puzzle: PuzzleDataV1,
+  filled: ArrayLike<number>,
+  selectedPalette: number,
+  manualHintRegion: number | null,
+  autoHintEnabled: boolean,
+): { regionId: number; paletteIndex: number } | null {
+  if (
+    manualHintRegion !== null &&
+    Number.isInteger(manualHintRegion) &&
+    manualHintRegion >= 0 &&
+    manualHintRegion < puzzle.regionCount &&
+    !filled[manualHintRegion]
+  ) {
+    return {
+      regionId: manualHintRegion,
+      paletteIndex: puzzle.regionPalette[manualHintRegion] ?? selectedPalette,
+    };
+  }
+
+  return autoHintEnabled
+    ? findHintTarget(puzzle, filled, selectedPalette)
+    : null;
+}
+
 function createCanvas(width: number, height: number) {
   const canvas = document.createElement("canvas");
   canvas.width = width;
@@ -621,6 +680,7 @@ export function ColourGame() {
   const filledRef = useRef(new Uint8Array(0));
   const undoRef = useRef<number[]>([]);
   const pulseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const activePointersRef = useRef(new Map<number, Point & { type: string }>());
   const strokeRegionsRef = useRef(new Set<number>());
   const pinchRef = useRef<{
@@ -658,6 +718,8 @@ export function ColourGame() {
     new Uint8Array(0),
   );
   const [wrongRegion, setWrongRegion] = useState<number | null>(null);
+  const [hintRegion, setHintRegion] = useState<number | null>(null);
+  const [autoHintEnabled, setAutoHintEnabled] = useState(false);
   const [pulseVersion, setPulseVersion] = useState(0);
   const [announcement, setAnnouncement] = useState("");
   const [comparing, setComparing] = useState(false);
@@ -692,6 +754,23 @@ export function ColourGame() {
     return remaining;
   }, [filledRegions, puzzle]);
 
+  const visibleHintTarget = useMemo(() => {
+    if (!puzzle || complete) return null;
+    return resolveVisibleHintTarget(
+      puzzle,
+      filledRegions,
+      selectedPalette,
+      hintRegion,
+      autoHintEnabled,
+    );
+  }, [autoHintEnabled, complete, filledRegions, hintRegion, puzzle, selectedPalette]);
+
+  const clearHint = useCallback(() => {
+    if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
+    hintTimerRef.current = null;
+    setHintRegion(null);
+  }, []);
+
   const beginGeneration = useCallback(
     async (
       nextPhoto: DecodedPhoto,
@@ -719,6 +798,7 @@ export function ColourGame() {
       setFilledCount(0);
       setSelectedPalette(0);
       setKeyboardRegion(null);
+      clearHint();
       setComparing(false);
       setView({ zoom: 1, panX: 0, panY: 0 });
       setGenerationProgress(3);
@@ -804,7 +884,7 @@ export function ColourGame() {
         setIsGenerating(false);
       }
     },
-    [],
+    [clearHint],
   );
 
   const processFile = useCallback(
@@ -852,6 +932,7 @@ export function ColourGame() {
       workerRef.current?.terminate();
       if (photoUrlRef.current) URL.revokeObjectURL(photoUrlRef.current);
       if (pulseTimerRef.current) clearTimeout(pulseTimerRef.current);
+      if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
       if (fillFrameRef.current !== null) cancelAnimationFrame(fillFrameRef.current);
     };
   }, []);
@@ -923,6 +1004,28 @@ export function ColourGame() {
       context.fillText(String(paletteIndex + 1), x, y);
     }
 
+    if (!complete && visibleHintTarget) {
+      const visibleHintRegion = visibleHintTarget.regionId;
+      const anchorOffset = visibleHintRegion * 2;
+      const x = puzzle.labelAnchors[anchorOffset];
+      const y = puzzle.labelAnchors[anchorOffset + 1];
+      const paletteIndex = visibleHintTarget.paletteIndex;
+      const colour = paletteColour(puzzle, paletteIndex);
+      const radius = 22 / Math.max(transform.scale, 0.01);
+      context.beginPath();
+      context.arc(x, y, radius, 0, Math.PI * 2);
+      context.fillStyle = `rgba(${colour.red}, ${colour.green}, ${colour.blue}, 0.22)`;
+      context.fill();
+      context.lineWidth = 3 / Math.max(transform.scale, 0.01);
+      context.strokeStyle = `rgb(${colour.red}, ${colour.green}, ${colour.blue})`;
+      context.stroke();
+      context.fillStyle = textColourFor(colour.red, colour.green, colour.blue);
+      context.font = `700 ${14 / Math.max(transform.scale, 0.01)}px ui-sans-serif, system-ui, sans-serif`;
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      context.fillText(String(paletteIndex + 1), x, y);
+    }
+
     if (!complete && keyboardRegion !== null && keyboardRegion < puzzle.regionCount) {
       const anchorOffset = keyboardRegion * 2;
       const x = puzzle.labelAnchors[anchorOffset];
@@ -952,6 +1055,7 @@ export function ColourGame() {
     puzzle,
     pulseVersion,
     view,
+    visibleHintTarget,
     wrongRegion,
   ]);
 
@@ -985,6 +1089,8 @@ export function ColourGame() {
   const attemptRegion = useCallback(
     (regionId: number, deduplicate = false) => {
       if (!canAttemptPuzzleRegion(puzzle, complete, comparing, regionId)) return;
+      clearHint();
+      if (deduplicate) setKeyboardRegion(null);
       if (deduplicate) {
         if (strokeRegionsRef.current.has(regionId)) return;
         strokeRegionsRef.current.add(regionId);
@@ -1046,7 +1152,7 @@ export function ColourGame() {
 
       if (nextFilledCount >= puzzle.regionCount) {
         setKeyboardRegion(null);
-      } else {
+      } else if (!deduplicate && keyboardRegion !== null) {
         let nextKeyboardRegion = -1;
         for (let step = 1; step <= puzzle.regionCount; step += 1) {
           const candidate = (regionId + step) % puzzle.regionCount;
@@ -1059,15 +1165,19 @@ export function ColourGame() {
           }
         }
         setKeyboardRegion(nextKeyboardRegion >= 0 ? nextKeyboardRegion : null);
+      } else {
+        setKeyboardRegion(null);
       }
     },
     [
       announcePulse,
+      clearHint,
       complete,
       comparing,
       findNextPalette,
       publishFilledRegions,
       puzzle,
+      keyboardRegion,
       selectedPalette,
     ],
   );
@@ -1149,6 +1259,7 @@ export function ColourGame() {
       (event.button === 1 || (event.button === 0 && event.shiftKey));
     if (event.pointerType === "mouse" && !mousePan && event.button !== 0) return;
 
+    setKeyboardRegion(null);
     event.currentTarget.setPointerCapture(event.pointerId);
     activePointersRef.current.set(event.pointerId, {
       x: event.clientX,
@@ -1325,66 +1436,47 @@ export function ColourGame() {
   };
 
   const choosePalette = (paletteIndex: number) => {
+    clearHint();
+    setKeyboardRegion(null);
     setSelectedPalette(paletteIndex);
     setAnnouncement(
       `Colour ${paletteIndex + 1} selected. ${remainingByPalette[paletteIndex]} sections remaining.`,
     );
-    if (puzzle) {
-      for (let region = 0; region < puzzle.regionCount; region += 1) {
-        if (
-          !filledRef.current[region] &&
-          puzzle.regionPalette[region] === paletteIndex
-        ) {
-          setKeyboardRegion(region);
-          break;
-        }
-      }
-    }
+  };
+
+  const toggleAutoHint = () => {
+    const nextEnabled = !autoHintEnabled;
+    setAutoHintEnabled(nextEnabled);
+    if (!nextEnabled) clearHint();
+    setAnnouncement(
+      nextEnabled
+        ? "Automatic hints on. The next matching section will stay highlighted."
+        : "Automatic hints off. Press Hint when you want help.",
+    );
   };
 
   const showHint = useCallback(() => {
     if (!puzzle || complete) return;
-    let hintRegion = -1;
-    let largestArea = -1;
-    let hintPalette = selectedPalette;
-
-    for (let region = 0; region < puzzle.regionCount; region += 1) {
-      if (
-        !filledRef.current[region] &&
-        puzzle.regionPalette[region] === selectedPalette &&
-        (puzzle.regionAreas[region] ?? 0) > largestArea
-      ) {
-        hintRegion = region;
-        largestArea = puzzle.regionAreas[region] ?? 0;
-      }
+    const target = findHintTarget(puzzle, filledRef.current, selectedPalette);
+    if (!target) return;
+    setKeyboardRegion(null);
+    if (target.paletteIndex !== selectedPalette) {
+      setSelectedPalette(target.paletteIndex);
     }
-
-    if (hintRegion < 0) {
-      hintPalette = findNextPalette(selectedPalette);
-      setSelectedPalette(hintPalette);
-      for (let region = 0; region < puzzle.regionCount; region += 1) {
-        if (
-          !filledRef.current[region] &&
-          puzzle.regionPalette[region] === hintPalette
-        ) {
-          hintRegion = region;
-          break;
-        }
-      }
-    }
-
-    if (hintRegion >= 0) {
-      setKeyboardRegion(hintRegion);
-      announcePulse(
-        hintRegion,
-        `Hint: look for the highlighted number ${hintPalette + 1}.`,
-        1_400,
-      );
-    }
-  }, [announcePulse, complete, findNextPalette, puzzle, selectedPalette]);
+    if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
+    setHintRegion(target.regionId);
+    setAnnouncement(
+      `Hint: look for the highlighted number ${target.paletteIndex + 1}.`,
+    );
+    hintTimerRef.current = setTimeout(() => {
+      setHintRegion(null);
+      hintTimerRef.current = null;
+    }, 1_400);
+  }, [complete, puzzle, selectedPalette]);
 
   const undo = useCallback(() => {
     if (!puzzle) return;
+    clearHint();
     const regionId = undoRef.current.pop();
     if (regionId === undefined) {
       setAnnouncement("There is nothing to undo yet.");
@@ -1396,9 +1488,9 @@ export function ColourGame() {
     setFilledArea((area) => Math.max(0, area - (puzzle.regionAreas[regionId] ?? 0)));
     setFilledCount((count) => Math.max(0, count - 1));
     setSelectedPalette(puzzle.regionPalette[regionId] ?? 0);
-    setKeyboardRegion(regionId);
+    setKeyboardRegion(null);
     setAnnouncement(`Last fill undone. Colour ${puzzle.regionPalette[regionId] + 1} selected.`);
-  }, [puzzle]);
+  }, [clearHint, puzzle]);
 
   const reset = () => {
     if (!puzzle || !filledCount) return;
@@ -1411,6 +1503,7 @@ export function ColourGame() {
     setFilledCount(0);
     setSelectedPalette(0);
     setKeyboardRegion(null);
+    clearHint();
     setComparing(false);
     setAnnouncement("Puzzle reset.");
   };
@@ -1533,7 +1626,7 @@ export function ColourGame() {
 
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
-      const regionId = keyboardRegion ?? unfinished[0];
+      const regionId = keyboardRegion ?? hintRegion ?? unfinished[0];
       setKeyboardRegion(regionId);
       attemptRegion(regionId);
     }
@@ -1784,6 +1877,16 @@ export function ColourGame() {
                     <span aria-hidden="true">✦</span> Hint
                   </button>
                   <button
+                    type="button"
+                    className={autoHintEnabled ? styles.toolActive : ""}
+                    onClick={toggleAutoHint}
+                    aria-pressed={autoHintEnabled}
+                    aria-label={`Automatic hints ${autoHintEnabled ? "on" : "off"}`}
+                    disabled={complete}
+                  >
+                    <span aria-hidden="true">◎</span> Auto-hint
+                  </button>
+                  <button
                     ref={comparisonToggleRef}
                     type="button"
                     onClick={() => setComparing((current) => !current)}
@@ -1823,12 +1926,7 @@ export function ColourGame() {
                   role="application"
                   tabIndex={0}
                   aria-label="Colouring canvas. Select a colour, then tap matching numbered sections. Use arrow keys to move between sections and Enter to fill."
-                  onFocus={() => {
-                    if (keyboardRegion === null) {
-                      const first = filledRef.current.findIndex((value) => value === 0);
-                      if (first >= 0) setKeyboardRegion(first);
-                    }
-                  }}
+                  onBlur={() => setKeyboardRegion(null)}
                   onKeyDown={handleCanvasKeyDown}
                   onPointerDown={handlePointerDown}
                   onPointerMove={handlePointerMove}
