@@ -673,8 +673,6 @@ export function ColourGame() {
   const photoUrlRef = useRef<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
-  const comparisonToggleRef = useRef<HTMLButtonElement>(null);
-  const completionActionRef = useRef<HTMLButtonElement>(null);
   const layersRef = useRef<CanvasLayers | null>(null);
   const fillFrameRef = useRef<number | null>(null);
   const filledRef = useRef(new Uint8Array(0));
@@ -936,12 +934,6 @@ export function ColourGame() {
       if (fillFrameRef.current !== null) cancelAnimationFrame(fillFrameRef.current);
     };
   }, []);
-
-  useEffect(() => {
-    if (!complete) return;
-    if (comparing) comparisonToggleRef.current?.focus();
-    else completionActionRef.current?.focus();
-  }, [complete, comparing]);
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -1887,10 +1879,10 @@ export function ColourGame() {
                     <span aria-hidden="true">◎</span> Auto-hint
                   </button>
                   <button
-                    ref={comparisonToggleRef}
                     type="button"
                     onClick={() => setComparing((current) => !current)}
                     aria-pressed={comparing}
+                    aria-label="Compare original photo"
                   >
                     <span aria-hidden="true">◐</span> {comparing ? "Puzzle" : "Original"}
                   </button>
@@ -1925,7 +1917,11 @@ export function ColourGame() {
                   className={styles.canvas}
                   role="application"
                   tabIndex={0}
-                  aria-label="Colouring canvas. Select a colour, then tap matching numbered sections. Use arrow keys to move between sections and Enter to fill."
+                  aria-label={
+                    complete
+                      ? "Completed colour-by-numbers artwork. Use the zoom controls to inspect it."
+                      : "Colouring canvas. Select a colour, then tap matching numbered sections. Use arrow keys to move between sections and Enter to fill."
+                  }
                   onBlur={() => setKeyboardRegion(null)}
                   onKeyDown={handleCanvasKeyDown}
                   onPointerDown={handlePointerDown}
@@ -1985,91 +1981,97 @@ export function ColourGame() {
                   </button>
                 </div>
 
-                <p className={styles.gestureHint}>
-                  Tap or sweep to fill · two fingers to move and zoom
-                </p>
+                {!complete && (
+                  <p className={styles.gestureHint}>
+                    Tap or sweep to fill · two fingers to move and zoom
+                  </p>
+                )}
+              </div>
+            </div>
 
-                {complete && !comparing && (
-                  <div
-                    className={styles.completeCard}
-                    role="dialog"
-                    aria-labelledby="completion-title"
-                    aria-describedby="completion-description"
-                  >
-                    <div className={styles.confetti} aria-hidden="true">
-                      <i /><i /><i /><i /><i />
-                    </div>
+            <aside
+              className={`${styles.palettePanel} ${complete ? styles.completionPanel : ""}`}
+              aria-labelledby={complete ? "completion-title" : "palette-title"}
+              aria-describedby={complete ? "completion-description" : undefined}
+            >
+              {complete ? (
+                <div className={styles.completeCard}>
+                  <div className={styles.confetti} aria-hidden="true">
+                    <i /><i /><i /><i /><i />
+                  </div>
+                  <div className={styles.completionCopy}>
                     <span className={styles.completeKicker}>Beautifully done</span>
                     <h2 id="completion-title">Your picture is complete.</h2>
                     <p id="completion-description">
                       Every section is now one pure, flat colour.
                     </p>
-                    <div>
-                      <button
-                        className={styles.secondaryButton}
-                        type="button"
-                        onClick={() => setComparing((current) => !current)}
-                      >
-                        {comparing ? "View artwork" : "Compare original"}
-                      </button>
-                      <button
-                        ref={completionActionRef}
-                        className={styles.primaryButton}
-                        type="button"
-                        onClick={download}
-                      >
-                        Download PNG
-                      </button>
-                    </div>
                   </div>
-                )}
-              </div>
-            </div>
-
-            <aside className={styles.palettePanel} aria-label="Numbered colour palette">
-              <div className={styles.paletteHeading}>
-                <div>
-                  <p className={styles.eyebrow}>Your colours</p>
-                  <h2>Pick a number</h2>
-                </div>
-                <span>{puzzle.regionCount - filledCount} left</span>
-              </div>
-              <div className={styles.paletteList}>
-                {Array.from({ length: paletteSize }, (_, paletteIndex) => {
-                  const colour = paletteColour(puzzle, paletteIndex);
-                  const remaining = remainingByPalette[paletteIndex] ?? 0;
-                  const selected = selectedPalette === paletteIndex;
-                  return (
+                  <div className={styles.completionActions}>
                     <button
+                      className={styles.secondaryButton}
                       type="button"
-                      key={paletteIndex}
-                      className={`${styles.paletteItem} ${selected ? styles.paletteSelected : ""} ${remaining === 0 ? styles.paletteDone : ""}`}
-                      onClick={() => choosePalette(paletteIndex)}
-                      disabled={remaining === 0}
-                      aria-pressed={selected}
-                      aria-label={`Colour ${paletteIndex + 1}, ${remaining} sections remaining`}
+                      onClick={() => setComparing((current) => !current)}
+                      aria-pressed={comparing}
+                      aria-label="Compare original photo"
                     >
-                      <span
-                        className={styles.swatch}
-                        style={{
-                          backgroundColor: paletteCss(puzzle, paletteIndex),
-                          color: textColourFor(colour.red, colour.green, colour.blue),
-                        }}
-                      >
-                        {remaining === 0 ? "✓" : paletteIndex + 1}
-                      </span>
-                      <span className={styles.paletteMeta}>
-                        <strong>Colour {paletteIndex + 1}</strong>
-                        <small>{remaining === 0 ? "Complete" : `${remaining} ${remaining === 1 ? "section" : "sections"}`}</small>
-                      </span>
+                      {comparing ? "View artwork" : "Compare original"}
                     </button>
-                  );
-                })}
-              </div>
-              <div className={styles.paletteTip}>
-                <span aria-hidden="true">⌁</span>
-                <p><strong>Pencil ready</strong> Sweep across matching areas to fill them quickly.</p>
-              </div>
+                    <button
+                      className={styles.primaryButton}
+                      type="button"
+                      onClick={download}
+                    >
+                      Download PNG
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className={styles.paletteHeading}>
+                    <div>
+                      <p className={styles.eyebrow}>Your colours</p>
+                      <h2 id="palette-title">Pick a number</h2>
+                    </div>
+                    <span>{puzzle.regionCount - filledCount} left</span>
+                  </div>
+                  <div className={styles.paletteList}>
+                    {Array.from({ length: paletteSize }, (_, paletteIndex) => {
+                      const colour = paletteColour(puzzle, paletteIndex);
+                      const remaining = remainingByPalette[paletteIndex] ?? 0;
+                      const selected = selectedPalette === paletteIndex;
+                      return (
+                        <button
+                          type="button"
+                          key={paletteIndex}
+                          className={`${styles.paletteItem} ${selected ? styles.paletteSelected : ""} ${remaining === 0 ? styles.paletteDone : ""}`}
+                          onClick={() => choosePalette(paletteIndex)}
+                          disabled={remaining === 0}
+                          aria-pressed={selected}
+                          aria-label={`Colour ${paletteIndex + 1}, ${remaining} sections remaining`}
+                        >
+                          <span
+                            className={styles.swatch}
+                            style={{
+                              backgroundColor: paletteCss(puzzle, paletteIndex),
+                              color: textColourFor(colour.red, colour.green, colour.blue),
+                            }}
+                          >
+                            {remaining === 0 ? "✓" : paletteIndex + 1}
+                          </span>
+                          <span className={styles.paletteMeta}>
+                            <strong>Colour {paletteIndex + 1}</strong>
+                            <small>{remaining === 0 ? "Complete" : `${remaining} ${remaining === 1 ? "section" : "sections"}`}</small>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className={styles.paletteTip}>
+                    <span aria-hidden="true">⌁</span>
+                    <p><strong>Pencil ready</strong> Sweep across matching areas to fill them quickly.</p>
+                  </div>
+                </>
+              )}
             </aside>
           </div>
         </section>

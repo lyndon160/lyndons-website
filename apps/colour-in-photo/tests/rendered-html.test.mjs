@@ -110,6 +110,21 @@ test("keeps the product client-only and removes starter surfaces", async () => {
   assert.match(component, /image\/png/);
   assert.match(layout, /\/og\.png/);
   assert.match(styles, /env\(safe-area-inset-(?:top|right|bottom|left)/);
+  const palettePanelPosition = component.indexOf("styles.palettePanel");
+  const completionPosition = component.indexOf("styles.completeCard");
+  assert.ok(palettePanelPosition >= 0, "The palette panel should be rendered");
+  assert.ok(
+    completionPosition > palettePanelPosition,
+    "Completion controls should render in the palette panel, after the canvas",
+  );
+  assert.doesNotMatch(
+    styles,
+    /\.completeCard\s*\{[^}]*position:\s*absolute/s,
+    "The completion panel must not overlay the finished artwork",
+  );
+  assert.doesNotMatch(component, /role="dialog"/);
+  assert.doesNotMatch(component, /completionActionRef/);
+  assert.doesNotMatch(component, /\{complete\s*&&\s*!comparing\s*&&\s*\(/);
   assert.deepEqual(JSON.parse(hosting), { d1: null, r2: null });
   assert.doesNotMatch(packageJson, /react-loading-skeleton|drizzle/);
 
