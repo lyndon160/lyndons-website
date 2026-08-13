@@ -1,0 +1,13 @@
+{
+  "name": "hw2-observed-corpus-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "node --test tests/*.test.mjs"
+  }
+}

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
+  <title id="title">Halo Wars 2 observed match analytics</title>
+  <desc id="description">Leader and opening-strategy analysis for an observed ranked match corpus.</desc>
+  <rect width="1200" height="630" fill="#11171d"/>
+  <circle cx="1065" cy="112" r="230" fill="#18353b"/>
+  <circle cx="1100" cy="570" r="300" fill="#16272e"/>
+  <g transform="translate(82 86)">
+    <rect width="88" height="88" rx="20" fill="#72d0d3"/>
+    <path d="M19 20v48h12V49h17v19h12V20H48v17H31V20zm49 0v12h15L68 57v11h30V56H83l15-25V20z" fill="#11171d"/>
+  </g>
+  <text x="82" y="252" fill="#72d0d3" font-family="system-ui, sans-serif" font-size="28" font-weight="700" letter-spacing="2">OBSERVED CORPUS</text>
+  <text x="82" y="335" fill="#f3f7f8" font-family="system-ui, sans-serif" font-size="64" font-weight="750">Halo Wars 2 analytics</text>
+  <text x="82" y="395" fill="#b7c5ca" font-family="system-ui, sans-serif" font-size="30">Leader performance and opening strategies</text>
+  <g transform="translate(82 468)">
+    <rect width="720" height="22" rx="11" fill="#27373e"/>
+    <rect width="506" height="22" rx="11" fill="#72d0d3"/>
+    <rect y="50" width="610" height="22" rx="11" fill="#27373e"/>
+    <rect y="50" width="366" height="22" rx="11" fill="#489da3"/>
+  </g>
+  <text x="1118" y="585" text-anchor="end" fill="#b7c5ca" font-family="system-ui, sans-serif" font-size="22">hw2.lyndonfawcett.com</text>
+</svg>
