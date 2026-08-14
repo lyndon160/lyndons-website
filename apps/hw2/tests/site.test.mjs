@@ -22,8 +22,23 @@ test("keeps the published snapshot private and offline", () => {
   assert.doesNotMatch(source, /<link[^>]+href=["']https?:\/\/[^"']+["'][^>]+rel=["']stylesheet["']/i);
 });
 
-test("contains the observed-corpus and preliminary-result caveats", () => {
+test("keeps detail tables collapsed behind accessible disclosures", () => {
   assert.match(source, /observed corpus/i);
-  assert.match(source, /preliminary/i);
-  assert.match(source, /not causal/i);
+  for (const [id, label] of [
+    ["leaders-table-details", "Expand detailed leader results table"],
+    ["pairs-table-details", "Expand detailed leader-pair results table"],
+    ["openings-table-details", "Expand detailed opening-strategy results table"],
+  ]) {
+    assert.match(
+      source,
+      new RegExp(`<details class="table-details" id="${id}">\\s*<summary>${label}<\\/summary>`),
+    );
+  }
+  assert.doesNotMatch(source, /<details class="table-details"[^>]*\sopen(?:\s|>)/);
+});
+
+test("omits the removed warning callouts and footer copy", () => {
+  assert.doesNotMatch(source, /class="notice"|--warning-bg|--warning-fg/);
+  assert.doesNotMatch(source, /Coverage caveat|Adjustment methodology|partial-notice/);
+  assert.doesNotMatch(source, /<footer|Aggregate run|Halo © Microsoft Corporation/);
 });
